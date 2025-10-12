@@ -1,1 +1,1 @@
-alert("Hello Word.js/03")
+alert("Hello Word.js/04")
