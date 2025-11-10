@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <p>Before the script...</p>
+    <!---->
+    <script>
+      
+      let contacts = [
+           {
+              name: '王小明',
+              phone: '02-12345678',
+              email: 'wang@example.com'
+            },
+            {
+              name: '陳小美',
+              phone: '02-12345678',
+              email: 'mei@example.com'
+            },
+             {
+              name: '王大明',
+              phone: '02-12345678',
+              email: 'meig@example.com'
+            },
+            {
+              name: '林小華',
+              phone: '02-12345678',
+              email: 'hua@example.com'
+            },
+            {
+              name: '白小小',
+              phone: '02-12345678',
+              email: 'bai@example.com'
+            },
+        ];
+
+        let isContinue = 'y' ;
+
+        while (isContinue == 'y'){
+            let searchName = prompt("請輸入要查詢的姓名","")
+
+            for  (let item of contacts){
+                 if (searchNAme == item.name) {
+                     console.log(item);
+                     break;
+                 }
+
+            }
+          
+            isContinue = prompt("繼續嗎? y/n ","")
+        }
+
+      </script>
+      <p>...After the script.</p>
+</body>
+
+</html>
