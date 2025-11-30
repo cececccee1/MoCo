@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orientation + Motion + Geolocation Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.8; }
+    button { padding: 10px 18px; font-size: 1.2rem; }
+    h3 { margin-top: 30px; }
+    .val { font-size: 1.1rem; }
+    pre { background:#f4f4f4; padding:10px; overflow:auto; }
+  </style>
+</head>
+<body>
+  <h2>DeviceOrientation + DeviceMotion + Geolocation 整合示範</h2>
+  <p>請按下按鈕授權後，旋轉手機與搖一搖，並允許取得定位。</p>
+
+  <button id="btn">取得感測器與定位授權並開始</button>
+
+  <h3>DeviceOrientation（方向角度）</h3>
+  <p class="val">Alpha (Z)：<span id="alpha">-</span></p>
+  <p class="val">Beta  (X)：<span id="beta">-</span></p>
+  <p class="val">Gamma (Y)：<span id="gamma">-</span></p>
+
+  <h3>DeviceMotion（加速度）</h3>
+  <p class="val">ax：<span id="ax">-</span></p>
+  <p class="val">ay：<span id="ay">-</span></p>
+  <p class="val">az：<span id="az">-</span></p>
+
+  <h3>DeviceMotion（含重力）</h3>
+  <p class="val">ax_g：<span id="ax_g">-</span></p>
+  <p class="val">ay_g：<span id="ay_g">-</span></p>
+  <p class="val">az_g：<span id="az_g">-</span></p>
+
+  <h3>Gyroscope 旋轉速率</h3>
+  <p class="val">α(速度)：<span id="rAlpha">-</span></p>
+  <p class="val">β(速度)：<span id="rBeta">-</span></p>
+  <p class="val">γ(速度)：<span id="rGamma">-</span></p>
+
+  <h3>Geolocation（位置資訊彙整）</h3>
+  <pre id="stateDisplay">{}</pre>
+
+  <script>
+    // ========= 統一狀態物件：地理位置 + 感測器 =========
+    const deviceState = {
+      // Geolocation
+      lat: null,               // 緯度
+      lon: null,               // 經度
+      altitude: null,          // 海拔 (公尺)
+      accuracy: null,          // 水平精度 (公尺)
+      altitudeAccuracy: null,  // 海拔精度 (公尺)
+      heading: null,           // 行進方向 (度，0 = 正北)
+      speed: null,             // 速度 (公尺/秒)
+
+      // Orientation
+      alpha: null,
+      beta: null,
+      gamma: null,
+
+      // Motion (acceleration)
+      ax: null,
+      ay: null,
+      az: null,
+
+      // Motion including gravity
+      ax_g: null,
+      ay_g: null,
+      az_g: null,
+
+      // Gyroscope rotation rate
+      rAlpha: null,
+      rBeta: null,
+      rGamma: null
+    };
+
+    // ===== DOM 元素 =====
+    const btn = document.getElementById("btn");
+
+    // Orientation
+    const alphaEl  = document.getElementById("alpha");
+    const betaEl   = document.getElementById("beta");
+    const gammaEl  = document.getElementById("gamma");
+
+    // Acceleration
+    const axEl = document.getElementById("ax");
+    const ayEl = document.getElementById("ay");
+    const azEl = document.getElementById("az");
+
+    // Acceleration including gravity
+    const axgEl = document.getElementById("ax_g");
+    const aygEl = document.getElementById("ay_g");
+    const azgEl = document.getElementById("az_g");
+
+    // Rotation rate
+    const rAlphaEl = document.getElementById("rAlpha");
+    const rBetaEl  = document.getElementById("rBeta");
+    const rGammaEl = document.getElementById("rGamma");
+
+    // Geolocation 狀態顯示
+    const stateDisplay = document.getElementById("stateDisplay");
+
+    function renderState() {
+      stateDisplay.textContent = JSON.stringify(deviceState, null, 2);
+    }
+
+    // ========= Geolocation 相關 =========
+    function updateGeolocation(position) {
+      const c = position.coords;
+      deviceState.lat = c.latitude;
+      deviceState.lon = c.longitude;
+      deviceState.altitude = c.altitude;              // 可能為 null
+      deviceState.accuracy = c.accuracy;
+      deviceState.altitudeAccuracy = c.altitudeAccuracy;
+      deviceState.heading = c.heading;
+      deviceState.speed = c.speed;
+      renderState();
+    }
+
+    function handleGeolocationError(error) {
+      console.error("地理位置錯誤：", error);
+    }
+
+    function startGeolocationWatch() {
+      if (!("geolocation" in navigator)) {
+        console.warn("此裝置/瀏覽器不支援 Geolocation");
+        return;
+      }
+      navigator.geolocation.watchPosition(
+        updateGeolocation,
+        handleGeolocationError,
+        { enableHighAccuracy: true, maximumAge: 0 }
+      );
+    }
+
+    // ========= 主按鈕：請求感測器與定位 =========
+    btn.addEventListener("click", async () => {
+      try {
+        // 檢查支援度
+        if (!window.DeviceMotionEvent && !window.DeviceOrientationEvent) {
+          alert("此裝置不支援 Motion/Orientation 感測器");
+          return;
+        }
+
+        // ======= Orientation 授權（iOS 13+ 需要）=======
+        if (typeof DeviceOrientationEvent?.requestPermission === "function") {
+          const r1 = await DeviceOrientationEvent.requestPermission();
+          if (r1 !== "granted") {
+            alert("未允許讀取 DeviceOrientation");
+            return;
+          }
+        }
+
+        // ======= Motion 授權（iOS 13+ 需要）=======
+        if (typeof DeviceMotionEvent?.requestPermission === "function") {
+          const r2 = await DeviceMotionEvent.requestPermission();
+          if (r2 !== "granted") {
+            alert("未允許讀取 DeviceMotion");
+            return;
+          }
+        }
+
+        // ======= DeviceOrientation Listener =======
+        window.addEventListener("deviceorientation", (event) => {
+          const a = event.alpha;
+          const b = event.beta;
+          const g = event.gamma;
+
+          alphaEl.textContent  = a?.toFixed(2) ?? "-";
+          betaEl.textContent   = b?.toFixed(2) ?? "-";
+          gammaEl.textContent  = g?.toFixed(2) ?? "-";
+
+          deviceState.alpha = a;
+          deviceState.beta  = b;
+          deviceState.gamma = g;
+          renderState();
+        });
+
+        // ======= DeviceMotion Listener =======
+        window.addEventListener("devicemotion", (event) => {
+          const acc  = event.acceleration || {};
+          const accG = event.accelerationIncludingGravity || {};
+          const rot  = event.rotationRate || {};
+
+          axEl.textContent = acc.x?.toFixed(2) ?? "-";
+          ayEl.textContent = acc.y?.toFixed(2) ?? "-";
+          azEl.textContent = acc.z?.toFixed(2) ?? "-";
+
+          axgEl.textContent = accG.x?.toFixed(2) ?? "-";
+          aygEl.textContent = accG.y?.toFixed(2) ?? "-";
+          azgEl.textContent = accG.z?.toFixed(2) ?? "-";
+
+          rAlphaEl.textContent = rot.alpha?.toFixed(2) ?? "-";
+          rBetaEl.textContent  = rot.beta?.toFixed(2)  ?? "-";
+          rGammaEl.textContent = rot.gamma?.toFixed(2) ?? "-";
+
+          deviceState.ax    = acc.x ?? null;
+          deviceState.ay    = acc.y ?? null;
+          deviceState.az    = acc.z ?? null;
+          deviceState.ax_g  = accG.x ?? null;
+          deviceState.ay_g  = accG.y ?? null;
+          deviceState.az_g  = accG.z ?? null;
+          deviceState.rAlpha = rot.alpha ?? null;
+          deviceState.rBeta  = rot.beta ?? null;
+          deviceState.rGamma = rot.gamma ?? null;
+
+          renderState();
+        });
+
+        // ======= 啟動定位 Watch =======
+        startGeolocationWatch();
+
+        btn.disabled = true;
+        btn.textContent = "感測器與定位已啟動";
+
+      } catch (err) {
+        alert("錯誤：" + err);
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
