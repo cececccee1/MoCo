@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>Fetch Demo</title>
+  <style>
+    .json-output {
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fetch Demo</h1>
+  <div class="json-output">
+    <h3>JSON 資料格式</h3>
+    <pre id="jsonOutput"></pre>
+  </div>
+
+  <script>
+    async function f_test() {
+      let user = {
+        name: 'John',
+        surname: 'Smith'
+      };
+
+      let response = await fetch(
+        'https://javascript.info/article/fetch/post/user',
+        {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(user)
+        }
+      );
+
+      let result = await response.json();
+      document.getElementById("jsonOutput").textContent =
+        JSON.stringify(result, null, 2);
+    }
+
+    // 自動執行
+    f_test();
+  </script>
+</body>
+</html>
