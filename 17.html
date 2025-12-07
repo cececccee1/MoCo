@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fetch</title>
+  <style>
+    .sensor-data { margin: 20px; padding: 15px; border: 1px solid #ccc; }
+    .axis { margin: 10px 0; }
+    .value { font-weight: bold; color: #007bff; }
+    pre { background: #f7f7f7; padding: 15px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Fetch Demo</h1>
+
+  <div class="json-output">
+    <h3>JSON 資料格式</h3>
+    <pre id="jsonOutput"></pre>
+  </div>
+
+  <script>
+    async function f_test() {
+      const url = 'https://api.github.com/repos/cececccee1/MoCo/commits';
+      const jsonOutput = document.getElementById('jsonOutput');
+
+      try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(`HTTP 錯誤：${response.status}`);
+        }
+
+        const commits = await response.json();
+
+        // 美化顯示 JSON
+        jsonOutput.textContent = JSON.stringify(commits[0], null, 2);
+
+      } catch (error) {
+        jsonOutput.textContent = `發生錯誤：${error.message}`;
+      }
+    }
+
+    f_test();
+  </script>
+</body>
+</html>
