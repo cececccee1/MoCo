@@ -14,23 +14,37 @@
 
   <script>
     const postForm = document.getElementById('guessPostForm');
-    const TEST_POST_URL = 'https://httptcan.org/post'; // 測試 API (你之前用的)
+
+    // 一樣用 httpbin 提供的測試 POST API
+    const TEST_POST_URL = 'https://httpbin.org/post';
 
     postForm.onsubmit = async (e) => {
       e.preventDefault();
 
-      const res = await fetch(TEST_POST_URL, {
-        method: 'POST',
-        body: new FormData(postForm) // POST：資料放在 request body
-      });
-
-      const data = await res.json();
-
-      console.log('POST 送出的欄位：');
-      for (const [k, v] of new FormData(postForm).entries()) {
+      // 先把要送出的欄位印出來
+      const fd = new FormData(postForm);
+      console.log('準備送出的欄位：');
+      for (const [k, v] of fd.entries()) {
         console.log(k + ': ' + v);
       }
-      console.log('POST 回傳結果：', data);
+
+      try {
+        const res = await fetch(TEST_POST_URL, {
+          method: 'POST',
+          body: fd
+        });
+
+        console.log('POST 狀態碼：', res.status);
+
+        const text = await res.text();
+        console.log('POST 原始回應文字：', text);
+
+        // 如果確定是 JSON，再打開下面兩行
+        // const data = JSON.parse(text);
+        // console.log('POST 解析後 JSON：', data);
+      } catch (err) {
+        console.error('POST 請求失敗：', err);
+      }
     };
   </script>
 </body>
