@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>Guess Number - GET</title>
+</head>
+<body>
+  <h1>猜數字表單 - GET</h1>
+
+  <form id="guessGetForm">
+    <input type="number" name="guess" placeholder="輸入 1~10 的數字">
+    <button type="submit">送出 (GET)</button>
+  </form>
+
+  <script>
+    const getForm = document.getElementById('guessGetForm');
+    const TEST_GET_URL = 'https://httptcan.org/get'; // 測試 API (可改成你的)
+
+    getForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const fd = new FormData(getForm);
+      const guess = fd.get('guess');
+
+      // GET：把資料放在網址 query string
+      const url = TEST_GET_URL + '?guess=' + encodeURIComponent(guess);
+
+      const res = await fetch(url, {
+        method: 'GET'
+      });
+
+      const data = await res.json();
+
+      console.log('GET 送出的網址：', url);
+      console.log('GET 回傳結果：', data);
+    };
+  </script>
+</body>
+</html>
