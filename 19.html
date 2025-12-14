@@ -14,7 +14,9 @@
 
   <script>
     const getForm = document.getElementById('guessGetForm');
-    const TEST_GET_URL = 'https://httptcan.org/get'; // 測試 API (可改成你的)
+
+    // 先用一個真正存在的測試 API，比較不會錯
+    const TEST_GET_URL = 'https://httpbin.org/get';
 
     getForm.onsubmit = async (e) => {
       e.preventDefault();
@@ -22,18 +24,25 @@
       const fd = new FormData(getForm);
       const guess = fd.get('guess');
 
-      // GET：把資料放在網址 query string
       const url = TEST_GET_URL + '?guess=' + encodeURIComponent(guess);
 
-      const res = await fetch(url, {
-        method: 'GET'
-      });
+      console.log('準備發送 GET 到：', url);
 
-      const data = await res.json();
+      try {
+        const res = await fetch(url, { method: 'GET' });
+        console.log('GET 狀態碼：', res.status);
 
-      console.log('GET 送出的網址：', url);
-      console.log('GET 回傳結果：', data);
+        const text = await res.text();
+        console.log('GET 原始回應文字：', text);
+
+        // 如果確定是 JSON，再打開下面兩行
+        // const data = JSON.parse(text);
+        // console.log('GET 解析後 JSON：', data);
+      } catch (err) {
+        console.error('GET 請求失敗：', err);
+      }
     };
   </script>
 </body>
 </html>
+
